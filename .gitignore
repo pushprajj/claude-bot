@@ -11,6 +11,7 @@ env/
 ENV/
 .venv/
 .env/
+signal_venv/
 
 # Python Cache
 __pycache__/
