@@ -1,0 +1,85 @@
+{
+  "tickers": [
+    {
+      "id": 1,
+      "symbol": "AAPL",
+      "market_type": "stock",
+      "exchange": "NASDAQ",
+      "name": "Apple Inc.",
+      "is_active": true,
+      "created_at": "2025-08-04T07:30:00",
+      "updated_at": "2025-08-04T07:30:00"
+    },
+    {
+      "id": 2,
+      "symbol": "BTC",
+      "market_type": "crypto",
+      "exchange": "binance",
+      "name": "Bitcoin",
+      "is_active": true,
+      "created_at": "2025-08-04T07:30:00",
+      "updated_at": "2025-08-04T07:30:00"
+    },
+    {
+      "id": 3,
+      "symbol": "TSLA",
+      "market_type": "stock",
+      "exchange": "NASDAQ",
+      "name": "Tesla Inc.",
+      "is_active": true,
+      "created_at": "2025-08-04T07:30:00",
+      "updated_at": "2025-08-04T07:30:00"
+    },
+    {
+      "id": 4,
+      "symbol": "ETH",
+      "market_type": "crypto",
+      "exchange": "binance",
+      "name": "Ethereum",
+      "is_active": true,
+      "created_at": "2025-08-04T07:30:00",
+      "updated_at": "2025-08-04T07:30:00"
+    },
+    {
+      "id": 5,
+      "symbol": "MSFT",
+      "market_type": "stock",
+      "exchange": "NASDAQ",
+      "name": "Microsoft Corporation",
+      "is_active": true,
+      "created_at": "2025-08-04T18:35:59.817129",
+      "updated_at": "2025-08-04T18:35:59.817129"
+    },
+    {
+      "id": 6,
+      "symbol": "LINK",
+      "market_type": "crypto",
+      "exchange": "binance",
+      "name": "Chainlink",
+      "is_active": true,
+      "created_at": "2025-08-04T21:55:15.545011",
+      "updated_at": "2025-08-04T21:55:15.545011"
+    },
+    {
+      "id": 7,
+      "symbol": "SOL",
+      "market_type": "crypto",
+      "exchange": "binance",
+      "name": "Solana",
+      "is_active": true,
+      "created_at": "2025-08-05T00:59:18.234331",
+      "updated_at": "2025-08-05T00:59:18.234331"
+    },
+    {
+      "id": 8,
+      "symbol": "CBA",
+      "market_type": "stock",
+      "exchange": "ASX",
+      "name": "Commonwealth Bank of Australia",
+      "is_active": true,
+      "created_at": "2025-08-05T01:00:22.499013",
+      "updated_at": "2025-08-05T01:00:22.499013"
+    }
+  ],
+  "next_id": 9
+}

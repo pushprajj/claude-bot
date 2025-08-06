@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "WebFetch",
+      "Grep",
+      "Glob",
+      "LS",
+      "MultiEdit",
+      "NotebookRead",
+      "NotebookEdit",
+      "TodoRead",
+      "TodoWrite",
+      "WebSearch",
+      "Bash(npm run dev:*)",
+      "Bash(\"C:\\Users\\pushp\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" test_db_connection.py)",
+      "Bash(\"C:\\Users\\pushp\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" test_credentials.py)",
+      "Bash(\"C:\\Users\\pushp\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" test_email.py)",
+      "Bash(\"C:\\Users\\pushp\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" test_signals.py)",
+      "Bash(\"C:\\Users\\pushp\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" test_signals_mock.py)",
+      "Bash(tasklist:*)",
+      "Bash(taskkill:*)",
+      "Bash(powershell:*)",
+      "Bash(curl:*)",
+      "Bash(\"C:\\Users\\pushp\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" -m uvicorn app.main_with_db:app --host 127.0.0.1 --port 8001 --reload)",
+      "Bash(\"C:\\Users\\pushp\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" -m uvicorn app.main_demo:app --host 127.0.0.1 --port 8001 --reload)",
+      "Bash(\"C:\\Users\\pushp\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" -m uvicorn app.main_demo:app --host 127.0.0.1 --port 8002)",
+      "Bash(\"C:\\Users\\pushp\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" test_signal_generation.py)",
+      "Bash(\"C:\\Users\\pushp\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" test_base_asset_conversion.py)",
+      "Bash(\"C:\\Users\\pushp\\AppData\\Local\\Programs\\Python\\Python310\\python.exe\" -m uvicorn app.main_demo:app --host 127.0.0.1 --port 8003)"
+    ],
+    "deny": []
+  }
+}
