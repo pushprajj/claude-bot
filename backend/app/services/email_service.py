@@ -231,3 +231,182 @@ class EmailService:
     def preview_daily_report(self, db: Session, exchanges: List[str]) -> str:
         """Preview the daily report HTML for testing"""
         return self.generate_market_signals_report(db, exchanges)
+    
+    def generate_crypto_signals_report(self, crypto_signals: List[Dict], exchange: str) -> str:
+        """Generate crypto signals report similar to stock signals"""
+        
+        # Group signals by base asset
+        signals_by_base = {}
+        for signal in crypto_signals:
+            base_asset = signal.get('base_asset', 'Unknown')
+            if base_asset not in signals_by_base:
+                signals_by_base[base_asset] = []
+            signals_by_base[base_asset].append(signal)
+        
+        total_signals = len(crypto_signals)
+        total_pairs = len(set(f"{s.get('symbol', 'Unknown')}/{s.get('base_asset', 'Unknown')}" for s in crypto_signals))
+        
+        current_date = datetime.utcnow()
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background-color: #f9fafb; color: #111827; }}
+                .container {{ max-width: 800px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }}
+                .header {{ background-color: #f59e0b; color: white; padding: 24px; }}
+                .header h1 {{ margin: 0; font-size: 20px; font-weight: 600; }}
+                .header p {{ margin: 8px 0 0; opacity: 0.9; font-size: 14px; }}
+                .content {{ padding: 24px; }}
+                .summary {{ margin-bottom: 24px; padding: 16px; background-color: #fef3c7; border-radius: 6px; border-left: 4px solid #f59e0b; }}
+                .summary-text {{ margin: 0; font-size: 14px; color: #92400e; }}
+                .section {{ margin-bottom: 32px; }}
+                .section h2 {{ color: #374151; font-size: 16px; font-weight: 600; margin: 0 0 12px; display: flex; align-items: center; }}
+                .base-asset-icon {{ background-color: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-right: 8px; }}
+                .signal-table {{ width: 100%; border-collapse: collapse; }}
+                .signal-table th {{ background-color: #f9fafb; padding: 12px; text-align: left; font-size: 12px; font-weight: 500; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e5e7eb; }}
+                .signal-table td {{ padding: 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }}
+                .signal-table tr:hover {{ background-color: #fef3c7; }}
+                .symbol {{ font-weight: 600; color: #111827; }}
+                .pair {{ font-family: monospace; color: #374151; }}
+                .price {{ font-family: monospace; color: #111827; }}
+                .exchange-badge {{ background-color: #f59e0b; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }}
+                .confidence-badge {{ background-color: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }}
+                .footer {{ background-color: #f9fafb; padding: 16px; text-align: center; color: #6b7280; font-size: 12px; }}
+                .no-signals {{ text-align: center; padding: 32px; color: #6b7280; }}
+                .crypto-note {{ background-color: #fef3c7; padding: 12px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; color: #92400e; }}
+                @media (max-width: 600px) {{
+                    .signal-table {{ font-size: 12px; }}
+                    .signal-table th, .signal-table td {{ padding: 8px; }}
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🪙 Crypto Trading Signals Alert</h1>
+                    <p>{exchange} • {current_date.strftime('%B %d, %Y')} • Generated: {current_date.strftime('%H:%M UTC')}</p>
+                </div>
+                
+                <div class="content">
+                    <div class="summary">
+                        <p class="summary-text">📊 {total_signals} confirmed buy signal{'s' if total_signals != 1 else ''} found across {total_pairs} trading pair{'s' if total_pairs != 1 else ''}</p>
+                    </div>
+                    
+                    <div class="crypto-note">
+                        <strong>Note:</strong> These are volume-confirmed buy signals based on technical analysis including EMA crossovers, RSI, MACD, and volume confirmation. Crypto markets operate 24/7 - always DYOR (Do Your Own Research).
+                    </div>
+        """
+        
+        if crypto_signals:
+            for base_asset in ['BTC', 'ETH']:  # Order by importance
+                if base_asset in signals_by_base:
+                    base_signals = signals_by_base[base_asset]
+                    html_content += f"""
+                    <div class="section">
+                        <h2><span class="base-asset-icon">{base_asset}</span>{base_asset} Trading Pairs ({len(base_signals)} signals)</h2>
+                        <table class="signal-table">
+                            <thead>
+                                <tr>
+                                    <th>Trading Pair</th>
+                                    <th>Exchange</th>
+                                    <th>Price</th>
+                                    <th>Volume</th>
+                                    <th>Confidence</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    """
+                    
+                    for signal in base_signals:
+                        symbol = signal.get('symbol', 'Unknown')
+                        base = signal.get('base_asset', base_asset)
+                        price = signal.get('price', 0)
+                        volume = signal.get('volume', 0)
+                        confidence = signal.get('confidence_score', 0)
+                        
+                        # Format price with appropriate decimal places
+                        if price < 0.001:
+                            price_str = f"{price:.8f}"
+                        elif price < 1:
+                            price_str = f"{price:.6f}"
+                        else:
+                            price_str = f"{price:.4f}"
+                        
+                        # Format volume
+                        if volume >= 1000000:
+                            volume_str = f"{volume/1000000:.1f}M"
+                        elif volume >= 1000:
+                            volume_str = f"{volume/1000:.1f}K"
+                        else:
+                            volume_str = f"{volume:.0f}"
+                        
+                        confidence_pct = f"{confidence*100:.0f}%"
+                        
+                        html_content += f"""
+                                <tr>
+                                    <td class="symbol">{symbol}/{base}</td>
+                                    <td><span class="exchange-badge">{exchange}</span></td>
+                                    <td class="price">{price_str}</td>
+                                    <td>{volume_str}</td>
+                                    <td><span class="confidence-badge">{confidence_pct}</span></td>
+                                </tr>
+                        """
+                    
+                    html_content += """
+                            </tbody>
+                        </table>
+                    </div>
+                    """
+        else:
+            html_content += """
+            <div class="no-signals">
+                <p>🔍 No confirmed buy signals found for today's analysis.</p>
+                <p>Check back after the next market analysis cycle.</p>
+            </div>
+            """
+        
+        html_content += f"""
+                </div>
+                
+                <div class="footer">
+                    <p>🤖 Crypto Trading Bot • Volume-confirmed buy signals only • High-confidence signals: 95%+</p>
+                    <p>Generated automatically using technical analysis • Not financial advice • Always DYOR</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return html_content
+    
+    def send_crypto_market_report(self, to_emails: List[str], crypto_signals: List[Dict], exchange: str) -> bool:
+        """Send crypto market signals report to multiple recipients"""
+        try:
+            html_content = self.generate_crypto_signals_report(crypto_signals, exchange)
+            
+            # Count signals by base asset for subject
+            btc_count = len([s for s in crypto_signals if s.get('base_asset') == 'BTC'])
+            eth_count = len([s for s in crypto_signals if s.get('base_asset') == 'ETH'])
+            
+            signal_summary = []
+            if btc_count > 0:
+                signal_summary.append(f"{btc_count} BTC")
+            if eth_count > 0:
+                signal_summary.append(f"{eth_count} ETH")
+            
+            summary_text = " & ".join(signal_summary) if signal_summary else "Crypto"
+            
+            subject = f"🪙 Crypto Signals Alert - {summary_text} - {exchange} - {datetime.utcnow().strftime('%Y-%m-%d')}"
+            
+            success = True
+            for email in to_emails:
+                if not self.send_email(email, subject, html_content):
+                    success = False
+            
+            return success
+            
+        except Exception as e:
+            logger.error(f"Failed to send crypto market report: {str(e)}")
+            return False

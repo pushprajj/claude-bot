@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import Ticker, MarketType
 from app.services.signal_generator import SignalGenerator
+from app.services.crypto_signal_generator import crypto_signal_generator
 from app.services.email_service import EmailService
 import os
 from dotenv import load_dotenv
@@ -35,6 +36,7 @@ class MarketScheduler:
         # Market close times (in their local timezone)
         self.market_schedules = {
             'US_MARKETS': {
+                'type': 'stock',
                 'exchanges': ['NYSE', 'NASDAQ'],
                 'timezone': pytz.timezone('US/Eastern'),
                 'close_time': dt_time(16, 0),  # 4:00 PM ET market close
@@ -42,11 +44,21 @@ class MarketScheduler:
                 'email_recipients': self._get_email_recipients('US_MARKETS')
             },
             'ASX': {
+                'type': 'stock',
                 'exchanges': ['ASX'],
                 'timezone': pytz.timezone('Australia/Sydney'),
                 'close_time': dt_time(16, 0),  # 4:00 PM AEST market close
                 'signal_delay_minutes': 10,  # 10 minutes delay = 4:10 PM AEST
                 'email_recipients': self._get_email_recipients('ASX')
+            },
+            'BINANCE_CRYPTO': {
+                'type': 'crypto',
+                'exchanges': ['Binance'],
+                'timezone': pytz.UTC,  # Crypto operates 24/7, use UTC
+                'close_time': dt_time(0, 0),  # Daily snapshot at midnight UTC
+                'signal_delay_minutes': 5,  # 5 minutes delay for processing
+                'email_recipients': self._get_email_recipients('BINANCE_CRYPTO'),
+                'base_assets': ['BTC', 'ETH']  # Generate signals for both BTC and ETH pairs
             }
         }
         
@@ -63,19 +75,35 @@ class MarketScheduler:
         return []
     
     def _setup_schedules(self):
-        """Setup scheduled tasks for each market"""
+        """Setup scheduled tasks for each market with proper timezone handling"""
         for market_name, config in self.market_schedules.items():
             # Calculate signal generation time (market close + delay)
+            market_tz = config['timezone']
             close_time = config['close_time']
             delay_minutes = config['signal_delay_minutes']
             
-            signal_time = (datetime.combine(datetime.today(), close_time) + 
-                          timedelta(minutes=delay_minutes)).time()
+            # Get current time in market timezone
+            now_in_market = datetime.now(market_tz)
             
-            # Schedule signal generation and email
-            schedule_time = signal_time.strftime('%H:%M')
+            # Create signal generation time in market timezone
+            signal_datetime = market_tz.localize(
+                datetime.combine(now_in_market.date(), close_time)
+            ) + timedelta(minutes=delay_minutes)
             
-            logger.info(f"Scheduling {market_name} signal generation at {schedule_time} local time")
+            # Convert to local system time for scheduling
+            local_tz = pytz.timezone('UTC')  # Use UTC as default, or get system timezone
+            try:
+                import tzlocal
+                local_tz = tzlocal.get_localzone()
+            except ImportError:
+                pass  # Fall back to UTC
+            
+            signal_local = signal_datetime.astimezone(local_tz).time()
+            schedule_time = signal_local.strftime('%H:%M')
+            
+            logger.info(f"Scheduling {market_name} signal generation:")
+            logger.info(f"  Market time: {signal_datetime.strftime('%H:%M %Z')}")
+            logger.info(f"  Local time: {schedule_time}")
             
             # Create a closure to capture the current values
             def create_market_job(market_name=market_name, config=config):
@@ -90,53 +118,112 @@ class MarketScheduler:
         try:
             logger.info(f"Starting signal generation for {market_name}")
             
-            # Get database session
-            db = SessionLocal()
-            
-            try:
-                # Get tickers for this market's exchanges
-                tickers = db.query(Ticker).filter(
-                    Ticker.is_active == True,
-                    Ticker.market_type == MarketType.STOCK,
-                    Ticker.exchange.in_(config['exchanges'])
-                ).all()
-                
-                if not tickers:
-                    logger.warning(f"No active tickers found for {market_name}")
-                    return
-                
-                logger.info(f"Generating signals for {len(tickers)} tickers in {market_name}")
-                
-                # Generate signals
-                await self.signal_generator.generate_signals_for_tickers(
-                    tickers, 
-                    db, 
-                    focus_confirmed_buy=True,  # Only generate confirmed buy signals
-                    batch_size=20
-                )
-                
-                # Send email report
-                if config['email_recipients']:
-                    logger.info(f"Sending email report to {len(config['email_recipients'])} recipients")
-                    
-                    success = self.email_service.send_market_close_report(
-                        config['email_recipients'],
-                        db,
-                        config['exchanges']
-                    )
-                    
-                    if success:
-                        logger.info(f"Email report sent successfully for {market_name}")
-                    else:
-                        logger.error(f"Failed to send email report for {market_name}")
-                else:
-                    logger.warning(f"No email recipients configured for {market_name}")
-                
-            finally:
-                db.close()
+            # Handle crypto vs stock markets differently
+            if config.get('type') == 'crypto':
+                await self._process_crypto_signals(market_name, config)
+            else:
+                await self._process_stock_signals(market_name, config)
                 
         except Exception as e:
             logger.error(f"Error processing market signals for {market_name}: {str(e)}")
+    
+    async def _process_stock_signals(self, market_name: str, config: Dict):
+        """Process stock signal generation and email"""
+        # Get database session
+        db = SessionLocal()
+        
+        try:
+            # Get tickers for this market's exchanges
+            tickers = db.query(Ticker).filter(
+                Ticker.is_active == True,
+                Ticker.market_type == MarketType.STOCK,
+                Ticker.exchange.in_(config['exchanges'])
+            ).all()
+            
+            if not tickers:
+                logger.warning(f"No active tickers found for {market_name}")
+                return
+            
+            logger.info(f"Generating signals for {len(tickers)} tickers in {market_name}")
+            
+            # Generate signals
+            await self.signal_generator.generate_signals_for_tickers(
+                tickers, 
+                db, 
+                focus_confirmed_buy=True,  # Only generate confirmed buy signals
+                batch_size=20
+            )
+            
+            # Send email report
+            if config['email_recipients']:
+                logger.info(f"Sending email report to {len(config['email_recipients'])} recipients")
+                
+                success = self.email_service.send_market_close_report(
+                    config['email_recipients'],
+                    db,
+                    config['exchanges']
+                )
+                
+                if success:
+                    logger.info(f"Email report sent successfully for {market_name}")
+                else:
+                    logger.error(f"Failed to send email report for {market_name}")
+            else:
+                logger.warning(f"No email recipients configured for {market_name}")
+            
+        finally:
+            db.close()
+    
+    async def _process_crypto_signals(self, market_name: str, config: Dict):
+        """Process crypto signal generation and email"""
+        db = SessionLocal()
+        
+        try:
+            base_assets = config.get('base_assets', ['BTC', 'ETH'])
+            all_crypto_signals = []
+            
+            for base_asset in base_assets:
+                logger.info(f"Generating {base_asset} pair signals for {market_name}")
+                
+                # Generate crypto signals for this base asset
+                signals = await crypto_signal_generator.generate_crypto_pair_signals(
+                    base_asset=base_asset,
+                    min_volume_usdt=0,  # Use all pairs like reference
+                    days_check=365,  # Allow older data
+                    focus_confirmed_buy=True,
+                    limit_pairs=100  # Top 100 pairs for performance
+                )
+                
+                # Add base_asset info to each signal for email template
+                for signal in signals:
+                    signal['base_asset'] = base_asset
+                
+                all_crypto_signals.extend(signals)
+                logger.info(f"Generated {len(signals)} {base_asset} pair signals")
+            
+            logger.info(f"Total crypto signals generated: {len(all_crypto_signals)}")
+            
+            # Send crypto email report
+            if config['email_recipients'] and all_crypto_signals:
+                logger.info(f"Sending crypto email report to {len(config['email_recipients'])} recipients")
+                
+                success = self.email_service.send_crypto_market_report(
+                    config['email_recipients'],
+                    all_crypto_signals,
+                    config['exchanges'][0]  # 'Binance'
+                )
+                
+                if success:
+                    logger.info(f"Crypto email report sent successfully for {market_name}")
+                else:
+                    logger.error(f"Failed to send crypto email report for {market_name}")
+            elif not all_crypto_signals:
+                logger.info(f"No crypto signals generated for {market_name} - no email sent")
+            else:
+                logger.warning(f"No email recipients configured for {market_name}")
+            
+        finally:
+            db.close()
     
     def start(self):
         """Start the scheduler in a separate thread"""
