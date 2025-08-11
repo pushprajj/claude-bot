@@ -1,13 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Eye, TrendingUp, TrendingDown, BarChart3, Trash2, RefreshCw } from 'lucide-react';
+import { Eye, TrendingUp, TrendingDown, BarChart3, Trash2, RefreshCw, Edit, Plus } from 'lucide-react';
 import { watchlistApi, Ticker } from '@/lib/api';
+import { EditWatchlistForm, TradeFromWatchlistForm } from './EditWatchlistForm';
 
 interface WatchlistItem {
   id: number;
   ticker_id: number;
   signal_id?: number;
+  target_price?: number;  // Keep for backward compatibility
+  support_price?: number;
+  resistance_price?: number;
+  target_min?: number;  // Target range minimum
+  target_max?: number;  // Target range maximum
+  signal_price?: number;
+  signal_type?: string;
+  signal_date?: string;
   added_at: string;
   expires_at?: string;
   notes?: string;
@@ -15,10 +24,35 @@ interface WatchlistItem {
   ticker: Ticker;
 }
 
+interface WatchlistSignalResult {
+  watchlist_item_id: number;
+  ticker_symbol: string;
+  ticker_name: string;
+  exchange: string;
+  condition: string;
+  trigger_price: string | number;
+  current_price: number;
+  description: string;
+  signal_price?: number;
+  signal_date?: string;
+  watchlist_item: WatchlistItem;
+}
+
 export default function Watchlist() {
   const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Signal checking state
+  const [signalResults, setSignalResults] = useState<WatchlistSignalResult[]>([]);
+  const [signalLoading, setSignalLoading] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<WatchlistSignalResult | null>(null);
+  const [showTradeModal, setShowTradeModal] = useState(false);
+  const [tradingItem, setTradingItem] = useState<WatchlistSignalResult | null>(null);
+  const [selectedMarket, setSelectedMarket] = useState('');
+  const [selectedExchange, setSelectedExchange] = useState('');
+  const [selectedBaseAsset, setSelectedBaseAsset] = useState('');
 
   useEffect(() => {
     fetchWatchlist();
@@ -27,58 +61,15 @@ export default function Watchlist() {
   const fetchWatchlist = async () => {
     try {
       setLoading(true);
+      setError(null);
       
-      // Get from localStorage
-      const storedWatchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+      const response = await watchlistApi.getAll({ is_active: true });
+      setWatchlistItems(response.data);
       
-      // Convert stored items to proper format
-      const formattedItems: WatchlistItem[] = storedWatchlist.map((item: any) => ({
-        id: item.id,
-        ticker_id: item.ticker_id,
-        signal_id: item.signal_id,
-        added_at: item.added_at,
-        is_active: item.is_active,
-        notes: item.notes,
-        ticker: {
-          id: item.ticker_id,
-          symbol: item.ticker_symbol,
-          market_type: 'crypto', // Default for now
-          exchange: 'binance',   // Default for now
-          name: item.ticker_symbol,
-          is_active: true,
-          created_at: '',
-          updated_at: ''
-        }
-      }));
-      
-      // If no stored items, show sample data
-      if (formattedItems.length === 0) {
-        const sampleItems: WatchlistItem[] = [
-          {
-            id: 999,
-            ticker_id: 2,
-            added_at: new Date().toISOString(),
-            is_active: true,
-            ticker: {
-              id: 2,
-              symbol: 'BTC',
-              market_type: 'crypto',
-              exchange: 'binance',
-              name: 'Bitcoin',
-              is_active: true,
-              created_at: '',
-              updated_at: ''
-            },
-            notes: 'Sample item - Generate signals and add to watchlist!'
-          }
-        ];
-        setWatchlistItems(sampleItems);
-      } else {
-        setWatchlistItems(formattedItems);
-      }
-    } catch (err) {
-      setError('Failed to fetch watchlist');
-      console.error(err);
+    } catch (err: any) {
+      console.error('Failed to fetch watchlist:', err);
+      setError(err.message || 'Failed to fetch watchlist');
+      setWatchlistItems([]);
     } finally {
       setLoading(false);
     }
@@ -87,15 +78,11 @@ export default function Watchlist() {
   const removeFromWatchlist = async (id: number) => {
     if (confirm('Remove this item from watchlist?')) {
       try {
-        // Remove from localStorage
-        const existingWatchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
-        const updatedWatchlist = existingWatchlist.filter((item: any) => item.id !== id);
-        localStorage.setItem('watchlist', JSON.stringify(updatedWatchlist));
-        
-        // Update local state
+        await watchlistApi.delete(id);
         setWatchlistItems(prev => prev.filter(item => item.id !== id));
       } catch (err) {
         setError('Failed to remove from watchlist');
+        console.error(err);
       }
     }
   };
@@ -107,6 +94,116 @@ export default function Watchlist() {
       // In future, this will call watchlistApi.promoteToTrade()
     } catch (err) {
       setError('Failed to open trade');
+    }
+  };
+
+  const checkWatchlistSignals = async () => {
+    try {
+      setSignalLoading(true);
+      setError(null);
+      
+      const requestData: any = {};
+      if (selectedMarket) requestData.market_type = selectedMarket;
+      if (selectedExchange) requestData.exchange = selectedExchange;
+      if (selectedBaseAsset) requestData.base_asset = selectedBaseAsset;
+      
+      console.log('Checking watchlist signals with filters:', requestData);
+      
+      const response = await watchlistApi.checkSignals(requestData);
+      setSignalResults(response.data.results || []);
+      
+      alert(`${response.data.message}\nTotal checked: ${response.data.total_checked}\nTriggered: ${response.data.total_triggered}`);
+      
+    } catch (err: any) {
+      console.error('Failed to check watchlist signals:', err);
+      const errorMessage = err.response?.data?.detail || err.message || 'Failed to check signals';
+      setError(errorMessage);
+      alert(`Failed to check watchlist signals: ${errorMessage}`);
+    } finally {
+      setSignalLoading(false);
+    }
+  };
+
+  const editWatchlistItem = async (result: WatchlistSignalResult) => {
+    try {
+      // Fetch the full watchlist item details
+      const response = await watchlistApi.getById(result.watchlist_item_id);
+      const fullItem = response.data;
+      
+      // Create an enhanced result object with full details
+      const enhancedResult = {
+        ...result,
+        watchlist_item: fullItem
+      };
+      
+      setEditingItem(enhancedResult);
+      setShowEditModal(true);
+    } catch (err) {
+      setError('Failed to load watchlist item details');
+      console.error(err);
+    }
+  };
+
+  const deleteWatchlistItem = async (result: WatchlistSignalResult) => {
+    if (confirm(`Remove ${result.ticker_symbol} from watchlist?`)) {
+      try {
+        await watchlistApi.delete(result.watchlist_item_id);
+        // Remove from both lists
+        setWatchlistItems(prev => prev.filter(item => item.id !== result.watchlist_item_id));
+        setSignalResults(prev => prev.filter(r => r.watchlist_item_id !== result.watchlist_item_id));
+        alert(`${result.ticker_symbol} removed from watchlist`);
+      } catch (err) {
+        setError('Failed to remove from watchlist');
+        console.error(err);
+      }
+    }
+  };
+
+  const tradeFromResult = (result: WatchlistSignalResult) => {
+    setTradingItem(result);
+    setShowTradeModal(true);
+  };
+
+  const handleEditSubmit = async (updates: {
+    support_price?: number;
+    resistance_price?: number;
+    target_min?: number;
+    target_max?: number;
+    notes?: string;
+  }) => {
+    if (!editingItem) return;
+    
+    try {
+      await watchlistApi.update(editingItem.watchlist_item_id, updates);
+      setShowEditModal(false);
+      setEditingItem(null);
+      await fetchWatchlist(); // Refresh the list
+    } catch (err) {
+      setError('Failed to update watchlist item');
+      console.error(err);
+    }
+  };
+
+  const handleTradeSubmit = async (tradeData: {
+    entry_price: number;
+    quantity: number;
+    stop_loss?: number;
+    take_profit?: number;
+    notes?: string;
+  }) => {
+    if (!tradingItem) return;
+    
+    try {
+      // Create the trade using the existing promote to trade functionality
+      await watchlistApi.promoteToTrade(tradingItem.watchlist_item_id, tradeData);
+      setShowTradeModal(false);
+      setTradingItem(null);
+      await fetchWatchlist(); // Refresh the list
+      // Remove from signal results since it's now a trade
+      setSignalResults(prev => prev.filter(r => r.watchlist_item_id !== tradingItem.watchlist_item_id));
+    } catch (err) {
+      setError('Failed to create trade');
+      console.error(err);
     }
   };
 
@@ -167,6 +264,174 @@ export default function Watchlist() {
         </div>
       </div>
 
+      {/* Signal Checking Controls */}
+      <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 className="text-lg font-semibold mb-4">Check Watchlist Signals</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Market Type</label>
+            <select
+              value={selectedMarket}
+              onChange={(e) => setSelectedMarket(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Markets</option>
+              <option value="stock">Stock</option>
+              <option value="crypto">Crypto</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Exchange</label>
+            <select
+              value={selectedExchange}
+              onChange={(e) => setSelectedExchange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Exchanges</option>
+              <option value="NYSE">NYSE</option>
+              <option value="NASDAQ">NASDAQ</option>
+              <option value="ASX">ASX</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Base Asset</label>
+            <select
+              value={selectedBaseAsset}
+              onChange={(e) => setSelectedBaseAsset(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              disabled
+            >
+              <option value="">All Assets (Coming Soon)</option>
+              <option value="BTC">BTC</option>
+              <option value="ETH">ETH</option>
+              <option value="USDT">USDT</option>
+            </select>
+          </div>
+          
+          <div className="flex items-end">
+            <button
+              onClick={checkWatchlistSignals}
+              disabled={signalLoading}
+              className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {signalLoading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Checking...
+                </>
+              ) : (
+                <>
+                  <BarChart3 className="w-4 h-4" />
+                  Check Signals
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Signal Results */}
+      {signalResults.length > 0 && (
+        <div className="bg-white rounded-lg shadow mb-6">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-lg font-semibold">Triggered Conditions ({signalResults.length})</h2>
+            <p className="text-sm text-gray-600">Watchlist items that have met their conditions</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ticker
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Condition Met
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Current Price
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Trigger Price
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Description
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {signalResults.map((result, index) => (
+                  <tr key={`${result.watchlist_item_id}-${index}`} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{result.ticker_symbol}</div>
+                        <div className="text-sm text-gray-500">{result.ticker_name}</div>
+                        <div className="text-xs text-gray-400">{result.exchange}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                        result.condition.includes('support') 
+                          ? 'bg-red-100 text-red-800'
+                          : result.condition.includes('resistance')
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {result.condition}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      ${result.current_price.toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {typeof result.trigger_price === 'number' 
+                        ? `$${result.trigger_price.toFixed(2)}`
+                        : `$${result.trigger_price}`
+                      }
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                      {result.description}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => editWatchlistItem(result)}
+                          className="bg-blue-100 text-blue-800 px-2 py-1 rounded-lg text-xs font-medium hover:bg-blue-200 flex items-center gap-1"
+                          title="Edit price levels"
+                        >
+                          <Edit className="w-3 h-3" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => tradeFromResult(result)}
+                          className="bg-green-100 text-green-800 px-2 py-1 rounded-lg text-xs font-medium hover:bg-green-200 flex items-center gap-1"
+                          title="Open trade"
+                        >
+                          <BarChart3 className="w-3 h-3" />
+                          Trade
+                        </button>
+                        <button
+                          onClick={() => deleteWatchlistItem(result)}
+                          className="bg-red-100 text-red-800 px-2 py-1 rounded-lg text-xs font-medium hover:bg-red-200 flex items-center gap-1"
+                          title="Remove from watchlist"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Watchlist Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
@@ -177,19 +442,22 @@ export default function Watchlist() {
                   Ticker
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Market
+                  Signal
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Exchange
+                  Current Price
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Added
+                  Support/Resistance
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Target Range
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Signal Date
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Notes
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -217,37 +485,93 @@ export default function Watchlist() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       <div>
                         <div className="font-semibold">{item.ticker.symbol}</div>
-                        <div className="text-xs text-gray-500">{item.ticker.name}</div>
+                        <div className="text-xs text-gray-500">{item.ticker.exchange}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        item.ticker.market_type === 'crypto' 
-                          ? 'bg-orange-100 text-orange-800' 
-                          : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {item.ticker.market_type}
-                      </span>
+                      {item.signal_type ? (
+                        <div className="flex items-center">
+                          {item.signal_type === 'buy' ? (
+                            <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                          ) : (
+                            <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
+                          )}
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            item.signal_type === 'buy' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {item.signal_type.toUpperCase()}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">No signal</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {item.signal_price ? (
+                        <div>
+                          <div className="font-medium">${item.signal_price.toFixed(2)}</div>
+                          <div className="text-xs text-gray-500">Signal price</div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">N/A</span>
+                      )}
+                    </td>
+                    {/* Support/Resistance Column */}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="space-y-1">
+                        {item.support_price && (
+                          <div className="text-red-600 text-xs">
+                            Support: ${item.support_price.toFixed(2)}
+                          </div>
+                        )}
+                        {item.resistance_price && (
+                          <div className="text-green-600 text-xs">
+                            Resistance: ${item.resistance_price.toFixed(2)}
+                          </div>
+                        )}
+                        {!item.support_price && !item.resistance_price && item.target_price && (
+                          <div className="font-medium text-blue-600 text-xs">
+                            Legacy: ${item.target_price.toFixed(2)}
+                          </div>
+                        )}
+                        {!item.support_price && !item.resistance_price && !item.target_price && (
+                          <span className="text-gray-400 text-xs">-</span>
+                        )}
+                      </div>
+                    </td>
+                    
+                    {/* Target Range Column */}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="space-y-1">
+                        {item.target_min && item.target_max && (
+                          <div className="text-blue-600 text-xs">
+                            ${item.target_min.toFixed(2)} - ${item.target_max.toFixed(2)}
+                          </div>
+                        )}
+                        {item.target_min && !item.target_max && (
+                          <div className="text-blue-600 text-xs">
+                            Min: ${item.target_min.toFixed(2)}
+                          </div>
+                        )}
+                        {!item.target_min && item.target_max && (
+                          <div className="text-blue-600 text-xs">
+                            Max: ${item.target_max.toFixed(2)}
+                          </div>
+                        )}
+                        {!item.target_min && !item.target_max && (
+                          <span className="text-gray-400 text-xs">-</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.ticker.exchange}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(item.added_at).toLocaleDateString()}
+                      {item.signal_date ? new Date(item.signal_date).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       <div className="max-w-xs truncate">
                         {item.notes || 'No notes'}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        item.is_active 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {item.is_active ? 'Active' : 'Inactive'}
-                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex gap-2">
@@ -276,6 +600,40 @@ export default function Watchlist() {
           </table>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {showEditModal && editingItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold mb-4">Edit Watchlist Item</h2>
+            <EditWatchlistForm
+              item={editingItem}
+              onSubmit={handleEditSubmit}
+              onCancel={() => {
+                setShowEditModal(false);
+                setEditingItem(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Trade Modal */}
+      {showTradeModal && tradingItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold mb-4">Open Trade</h2>
+            <TradeFromWatchlistForm
+              item={tradingItem}
+              onSubmit={handleTradeSubmit}
+              onCancel={() => {
+                setShowTradeModal(false);
+                setTradingItem(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

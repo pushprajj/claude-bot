@@ -1,24 +1,27 @@
-# Trading Bot - Signal Generation & Portfolio Management
+# Claude Trading Bot 🤖📈
 
-A comprehensive trading bot system for cryptocurrency and stock markets that provides automated signal detection, portfolio management, and trading capabilities.
+A sophisticated trading bot built with FastAPI and Next.js that generates high-quality confirmed buy signals for ASX stocks using advanced technical analysis.
 
-## 🚀 Features Implemented (Phase 1)
+## ✨ Features
 
-### Backend (Python FastAPI)
-- ✅ **Ticker Management**: Add, edit, delete tickers for both crypto and stocks
-- ✅ **Signal Generation**: EMA crossover, Golden Cross, SMA+Volume, Confirmed Buy signals
-- ✅ **Data Fetching**: Real-time data from Binance, Bybit (crypto) and yfinance (stocks)
-- ✅ **Watchlist Management**: Monitor specific tickers with expiration dates
-- ✅ **Trade Management**: Track open positions, P&L, stop loss, take profit
-- ✅ **Email Reports**: Daily signals summary, portfolio reports, instant alerts
-- ✅ **PostgreSQL Database**: Comprehensive schema for all trading data
+### 🎯 **Confirmed Buy Signal Generation**
+- **6-Condition Confirmed Buy Signals** with volume confirmation
+- **5-day EMA crossover detection** (5 EMA crosses above 20 EMA)
+- **Volume spike confirmation** (5-day average > 50-day average)
+- **Multiple technical indicators**: RSI > 50, MACD > Signal Line, Price above 50 SMA
+- **Only volume-confirmed signals** displayed (highest quality)
 
-### Frontend (Next.js + TypeScript)
-- ✅ **Responsive Dashboard**: Overview of signals, trades, watchlist
-- ✅ **Ticker Management UI**: Interactive forms and tables
-- ✅ **Navigation System**: Clean sidebar navigation
-- ✅ **Real-time Updates**: API integration with loading states
-- ✅ **Modern UI**: Tailwind CSS with professional design
+### 🚀 **Smart Real-Time Updates**
+- **Intelligent frontend refresh** - only updates when backend completes
+- **Status-based polling** every 10 seconds (lightweight)
+- **Automatic completion detection** with success notifications
+- **No premature refreshing** or wasteful API calls
+
+### 🏗️ **Architecture**
+- **Backend**: FastAPI with SQLite database
+- **Frontend**: Next.js with TypeScript and Tailwind CSS
+- **Data Source**: yfinance via subprocess (avoids rate limiting)
+- **Signal Processing**: 122/123 ASX tickers successfully processed
 
 ## 🏗️ Project Structure
 
@@ -56,8 +59,7 @@ trading-bot/
 ### Prerequisites
 - Python 3.8+
 - Node.js 18+
-- PostgreSQL database
-- Redis (for background tasks)
+- SQLite database (auto-created)
 
 ### Backend Setup
 
@@ -77,34 +79,18 @@ trading-bot/
    pip install -r requirements.txt
    ```
 
-4. **Setup environment variables:**
+4. **Setup environment variables (optional):**
    ```bash
-   cp .env.example .env
+   # Create .env file if you need custom settings
+   # The app works without .env file using SQLite defaults
+   ```
+
+5. **Run the backend:**
+   ```bash
+   uvicorn app.main_with_db:app --reload --host 127.0.0.1 --port 8002
    ```
    
-   Edit `.env` with your configuration:
-   ```env
-   DATABASE_URL=postgresql://username:password@localhost:5432/trading_bot
-   BINANCE_API_KEY=your_binance_api_key
-   BINANCE_SECRET_KEY=your_binance_secret_key
-   BYBIT_API_KEY=your_bybit_api_key
-   BYBIT_SECRET_KEY=your_bybit_secret_key
-   SMTP_SERVER=smtp.gmail.com
-   SMTP_PORT=587
-   EMAIL_USERNAME=your_email@gmail.com
-   EMAIL_PASSWORD=your_email_password
-   ```
-
-5. **Setup database:**
-   ```bash
-   # Create PostgreSQL database named 'trading_bot'
-   # Tables will be created automatically on first run
-   ```
-
-6. **Run the backend:**
-   ```bash
-   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-   ```
+   The SQLite database will be created automatically on first run.
 
 ### Frontend Setup
 
@@ -121,7 +107,7 @@ trading-bot/
 3. **Create environment file:**
    ```bash
    # Create .env.local
-   echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
+   echo "NEXT_PUBLIC_API_URL=http://localhost:8002" > .env.local
    ```
 
 4. **Run the frontend:**
@@ -132,89 +118,118 @@ trading-bot/
 5. **Access the application:**
    Open [http://localhost:3000](http://localhost:3000) in your browser
 
-## 📊 Signal Types Implemented
+## 📊 Current Signal Implementation
 
-### 1. EMA Crossover Signal
-- **Logic**: 12 EMA crosses 26 EMA with RSI confirmation
-- **Buy**: Bullish crossover + RSI < 70 (not overbought)
-- **Sell**: Bearish crossover + RSI > 30 (not oversold)
+### **Confirmed Buy Signal (Primary Focus)**
+The system currently focuses exclusively on high-quality **volume-confirmed buy signals** that meet all 6 strict conditions:
 
-### 2. Golden Cross Signal
-- **Logic**: 50 SMA crosses 200 SMA
-- **Buy**: Golden Cross (50 SMA > 200 SMA)
-- **Sell**: Death Cross (50 SMA < 200 SMA)
+#### **Required Conditions (All 6 Must Be Met):**
+1. **5 EMA Crossover**: 5 EMA crossed above 20 EMA within last 5 days (excluding current candle)
+2. **Price Above EMAs**: Both open and close prices above 5 EMA and 20 EMA
+3. **Price Above SMA50**: Closing price above 50-day Simple Moving Average
+4. **Volume Confirmation**: 5-day volume average > 50-day volume average
+5. **RSI Bullish**: RSI above 50 (momentum confirmation)
+6. **MACD Positive**: MACD line above Signal line
 
-### 3. SMA + Volume Signal
-- **Logic**: Price crosses 200 SMA with high volume
-- **Buy**: Price breaks above 200 SMA + volume > 1.2x average
-- **Sell**: Price breaks below 200 SMA + volume > 1.2x average
+#### **Technical Details:**
+- **Lookback Period**: 5 days excluding current candle (indices -6 to -2)
+- **Volume Ratio**: Must be > 1.0 for confirmation
+- **Data Requirements**: Minimum 60 days of historical data
+- **Processing**: 122/123 ASX tickers successfully processed
 
-### 4. Confirmed Buy Signal
-- **Logic**: Multiple indicators alignment
-- **Conditions**: EMA bullish + RSI recovery + MACD bullish
-- **Strength**: Strong if 3/3 conditions, Moderate if 2/3
+### **Other Signal Types (Available but Disabled)**
+The codebase includes additional signal types that can be enabled:
+- EMA Crossover (12/26 EMA with RSI)
+- Golden Cross (50/200 SMA)
+- SMA Volume Breakout (200 SMA with volume spike)
+- Simple SMA50 signals
 
-## 🔄 API Endpoints
+## 🔄 Key API Endpoints
 
-### Tickers
-- `GET /api/tickers` - List all tickers
-- `POST /api/tickers` - Create new ticker
-- `PUT /api/tickers/{id}` - Update ticker
-- `DELETE /api/tickers/{id}` - Delete ticker
-- `POST /api/tickers/bulk` - Bulk create tickers
+### **Primary Endpoints (Currently Active)**
 
-### Signals
-- `GET /api/signals` - List signals with filters
-- `POST /api/signals/generate` - Generate signals on-demand
-- `POST /api/signals/{id}/process` - Process signal (watchlist/trade/skip)
+#### Signals
+- `GET /api/signals` - List signals with market/exchange filters
+- `POST /api/signals/generate-confirmed-buy` - **Main endpoint** for ASX signal generation
+- `GET /api/signals/generation-status` - Check signal generation progress
 - `GET /api/signals/statistics/summary` - Signal statistics
 
-### Watchlist
+#### Tickers
+- `GET /api/tickers` - List all tickers (123 ASX stocks loaded)
+- `POST /api/tickers/bulk` - Bulk import tickers
+
+### **Additional Endpoints (Available)**
+
+#### Watchlist & Trades
 - `GET /api/watchlist` - List watchlist items
-- `POST /api/watchlist` - Add to watchlist
-- `POST /api/watchlist/{id}/promote-to-trade` - Promote to trade
-
-### Trades
+- `POST /api/watchlist` - Add signal to watchlist
 - `GET /api/trades` - List trades
-- `POST /api/trades` - Create trade
-- `PUT /api/trades/{id}/close` - Close trade
-- `GET /api/trades/statistics/summary` - Trade statistics
+- `POST /api/trades` - Create trade entry
 
-### Reports
-- `POST /api/reports/send-daily-report` - Email daily signals
-- `POST /api/reports/send-portfolio-summary` - Email portfolio summary
-- `GET /api/reports/preview-daily-report` - Preview report HTML
+#### System Endpoints
+- `GET /` - API status and database connection
+- `GET /health` - Health check
+- `GET /docs` - Interactive API documentation
 
-## 📈 Next Steps (Phase 2)
+### **Signal Generation Process**
+1. **POST** `/api/signals/generate-confirmed-buy` - Starts background processing
+2. **GET** `/api/signals/generation-status` - Polls for completion (frontend auto-refresh)
+3. **GET** `/api/signals?market_type=stock&exchange=ASX` - Retrieves generated signals
 
-1. **Enhanced Signal Algorithms**
-   - Custom signal parameters
-   - Backtesting capabilities
-   - Signal performance tracking
+## 🚀 Current Status & Next Steps
 
-2. **Advanced Frontend Features**
-   - Signal generation interface
-   - Watchlist management page
-   - Trade management dashboard
-   - Charts and visualizations
+### **✅ Completed (Phase 1)**
+- ✅ **Core Infrastructure**: FastAPI + Next.js + SQLite
+- ✅ **ASX Stock Data**: 123 tickers successfully loaded
+- ✅ **Confirmed Buy Signals**: 6-condition volume-confirmed algorithm
+- ✅ **Subprocess Data Fetching**: Bypasses yfinance web server rate limiting
+- ✅ **Intelligent Frontend**: Status-based polling with completion detection
+- ✅ **Clean Project Structure**: Archived unused files, proper .gitignore
+- ✅ **GitHub Repository**: https://github.com/pushprajj/claude-bot
 
-3. **Automation Features**
-   - Scheduled signal generation
-   - Automated email reports
-   - Background task processing
+### **🎯 Ready for Phase 2 Enhancements**
 
-4. **Integration Enhancements**
-   - More exchanges support
-   - Additional technical indicators
+1. **Signal Algorithm Improvements**
+   - Backtesting framework for signal performance validation
+   - Additional technical indicators (Bollinger Bands, Stochastic)
+   - Multi-timeframe analysis (daily, weekly confluence)
+
+2. **User Interface Enhancements**
+   - Interactive price charts with signal markers
+   - Signal filtering and sorting options
+   - Watchlist management with alerts
+   - Trade tracking and performance metrics
+
+3. **Automation & Scheduling**
+   - Automated daily signal generation
+   - Email/SMS notification system
+   - Scheduled reports and summaries
+
+4. **Data & Performance**
    - Real-time price updates
-   - Mobile responsiveness
+   - Additional exchanges (NYSE, NASDAQ)
+   - Historical signal performance tracking
+   - Mobile-responsive design
 
 ## 🚨 Important Notes
 
-- **Security**: Never commit API keys or credentials
-- **Testing**: Test with small amounts before live trading
-- **Backup**: Regularly backup your database
-- **Monitoring**: Monitor API rate limits for exchanges
+### **Technical Considerations**
+- **Data Fetching**: Uses subprocess approach to avoid yfinance rate limiting
+- **Processing Time**: ~10 seconds per ticker (122 tickers ≈ 20 minutes)
+- **Database**: SQLite auto-created, no setup required
+- **Rate Limiting**: Built-in delays prevent API blocking
+
+### **Trading Disclaimers**
+- **Educational Purpose**: This is a technical analysis tool, not financial advice
+- **Risk Management**: Always use proper position sizing and stop losses
+- **Testing**: Backtest signals before live implementation
+- **Market Conditions**: Signals work best in trending markets
+
+### **Security & Maintenance**
+- **No API Keys Required**: Uses public yfinance data
+- **Local Database**: All data stored locally in SQLite
+- **Regular Updates**: Monitor for new ASX listings
+- **Backup**: Database file is `trading_bot.db` in backend directory
 
 ## 📞 Support
 
@@ -225,6 +240,8 @@ For issues and questions:
 
 ---
 
-**Status**: Phase 1 Complete ✅  
+**Status**: Production Ready ✅  
 **Last Updated**: August 2025  
-**Version**: 1.0.0
+**Version**: 1.0.0  
+**Repository**: https://github.com/pushprajj/claude-bot  
+**Focus**: ASX Volume-Confirmed Buy Signals

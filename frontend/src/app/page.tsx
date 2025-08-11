@@ -7,12 +7,12 @@ export default function Home() {
       <Navigation />
       
       <div className="flex-1 overflow-auto">
-        <div className="p-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Trading Bot Dashboard</h1>
+        <div className="p-4 sm:p-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Trading Bot Dashboard</h1>
           
           {/* Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
               <div className="flex items-center">
                 <div className="p-2 bg-blue-100 rounded-md">
                   <Target className="h-6 w-6 text-blue-600" />
@@ -24,7 +24,7 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
               <div className="flex items-center">
                 <div className="p-2 bg-green-100 rounded-md">
                   <TrendingUp className="h-6 w-6 text-green-600" />
@@ -36,7 +36,7 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
               <div className="flex items-center">
                 <div className="p-2 bg-yellow-100 rounded-md">
                   <Eye className="h-6 w-6 text-yellow-600" />
@@ -48,7 +48,7 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
               <div className="flex items-center">
                 <div className="p-2 bg-purple-100 rounded-md">
                   <BarChart3 className="h-6 w-6 text-purple-600" />
@@ -62,13 +62,13 @@ export default function Home() {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <a
                   href="/tickers"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 hover:shadow-sm"
                 >
                   <Target className="h-8 w-8 text-blue-600 mb-2" />
                   <h3 className="font-medium text-gray-900">Manage Tickers</h3>
@@ -77,7 +77,7 @@ export default function Home() {
                 
                 <a
                   href="/signals"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 hover:shadow-sm"
                 >
                   <Activity className="h-8 w-8 text-green-600 mb-2" />
                   <h3 className="font-medium text-gray-900">Generate Signals</h3>
@@ -86,7 +86,7 @@ export default function Home() {
                 
                 <a
                   href="/watchlist"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 hover:shadow-sm"
                 >
                   <Eye className="h-8 w-8 text-yellow-600 mb-2" />
                   <h3 className="font-medium text-gray-900">View Watchlist</h3>
@@ -95,7 +95,7 @@ export default function Home() {
                 
                 <a
                   href="/trades"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 hover:shadow-sm"
                 >
                   <BarChart3 className="h-8 w-8 text-purple-600 mb-2" />
                   <h3 className="font-medium text-gray-900">Active Trades</h3>
@@ -104,7 +104,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
               <div className="space-y-4">
                 <div className="text-center py-8 text-gray-500">
@@ -117,9 +117,9 @@ export default function Home() {
           </div>
 
           {/* System Status */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">System Status</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-green-400 rounded-full mr-3"></div>
                 <span className="text-sm text-gray-600">API Status: Online</span>

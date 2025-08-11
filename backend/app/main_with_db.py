@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import tickers, signals, watchlist, trades, reports
+from app.routers import tickers, signals, watchlist, trades, reports, scheduler
 
 app = FastAPI(title="Trading Bot API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "http://localhost:3004", "http://localhost:3005", "http://127.0.0.1:3005", "http://localhost:8002"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -30,6 +30,16 @@ app.include_router(signals.router, prefix="/api/signals", tags=["signals"])
 app.include_router(watchlist.router, prefix="/api/watchlist", tags=["watchlist"])
 app.include_router(trades.router, prefix="/api/trades", tags=["trades"])
 app.include_router(reports.router, prefix="/api/reports", tags=["reports"])
+app.include_router(scheduler.router, prefix="/api/scheduler", tags=["scheduler"])
+
+# Start the market scheduler automatically
+if database_connected:
+    try:
+        from app.services.market_scheduler import market_scheduler
+        market_scheduler.start()
+        print("SUCCESS: Market scheduler started automatically")
+    except Exception as e:
+        print(f"WARNING: Failed to start market scheduler: {e}")
 
 @app.get("/")
 def read_root():
@@ -43,7 +53,8 @@ def read_root():
             "signals": "/api/signals",
             "watchlist": "/api/watchlist",
             "trades": "/api/trades",
-            "reports": "/api/reports"
+            "reports": "/api/reports",
+            "scheduler": "/api/scheduler"
         }
     }
 

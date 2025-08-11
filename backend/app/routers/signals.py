@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List, Optional
 from datetime import datetime, timedelta
 import threading
@@ -52,6 +53,11 @@ def get_signals(
             query = query.filter(func.lower(models.Ticker.exchange) == exchange.lower())
     else:
         query = db.query(models.Signal)
+    
+    # Filter to today's signals only for current signals endpoint
+    from datetime import date
+    today = date.today()
+    query = query.filter(models.Signal.signal_date == today)
     
     # Apply other filters
     if ticker_id:
@@ -190,7 +196,6 @@ async def generate_real_signals(
     if request.market_type:
         query = query.filter(models.Ticker.market_type == request.market_type)
     if request.exchange:
-        from sqlalchemy import func
         query = query.filter(func.lower(models.Ticker.exchange) == request.exchange.lower())
     if request.ticker_symbols:
         query = query.filter(models.Ticker.symbol.in_(request.ticker_symbols))
@@ -231,7 +236,6 @@ async def generate_confirmed_buy_signals(
     if request.market_type:
         query = query.filter(models.Ticker.market_type == request.market_type)
     if request.exchange:
-        from sqlalchemy import func
         query = query.filter(func.lower(models.Ticker.exchange) == request.exchange.lower())
     if request.ticker_symbols:
         query = query.filter(models.Ticker.symbol.in_(request.ticker_symbols))
@@ -261,13 +265,61 @@ async def generate_confirmed_buy_signals(
         try:
             print(f"Starting background signal generation for {len(tickers)} tickers...")
             
-            # Clear existing signals for these tickers to ensure fresh results
+            # Clear existing signals for these tickers from today only to preserve historical data
             ticker_ids = [t.id for t in tickers]
+            today = datetime.now().date()
+            
+            # First, clear watchlist references to avoid foreign key violations (only for today's signals)
+            db_session.query(models.WatchlistItem).filter(
+                models.WatchlistItem.signal_id.in_(
+                    db_session.query(models.Signal.id).filter(
+                        models.Signal.ticker_id.in_(ticker_ids),
+                        models.Signal.signal_date == today
+                    )
+                )
+            ).update({"signal_id": None}, synchronize_session=False)
+            
+            # Also clear trade references to avoid foreign key violations (only for today's signals)
+            db_session.query(models.Trade).filter(
+                models.Trade.signal_id.in_(
+                    db_session.query(models.Signal.id).filter(
+                        models.Signal.ticker_id.in_(ticker_ids),
+                        models.Signal.signal_date == today
+                    )
+                )
+            ).update({"signal_id": None}, synchronize_session=False)
+            
+            # Now safely delete only today's signals, preserving historical data
             deleted_count = db_session.query(models.Signal).filter(
-                models.Signal.ticker_id.in_(ticker_ids)
+                models.Signal.ticker_id.in_(ticker_ids),
+                models.Signal.signal_date == today
             ).delete(synchronize_session=False)
+            
+            # Clean up signals older than 10 days to maintain history limit
+            cleanup_date = today - timedelta(days=10)
+            
+            # Clear references for old signals first
+            old_signal_ids = db_session.query(models.Signal.id).filter(
+                models.Signal.signal_date < cleanup_date
+            ).subquery()
+            
+            db_session.query(models.WatchlistItem).filter(
+                models.WatchlistItem.signal_id.in_(old_signal_ids)
+            ).update({"signal_id": None}, synchronize_session=False)
+            
+            db_session.query(models.Trade).filter(
+                models.Trade.signal_id.in_(old_signal_ids)
+            ).update({"signal_id": None}, synchronize_session=False)
+            
+            # Delete old signals
+            old_deleted_count = db_session.query(models.Signal).filter(
+                models.Signal.signal_date < cleanup_date
+            ).delete(synchronize_session=False)
+            
             db_session.commit()
             print(f"Cleared {deleted_count} existing signals for selected tickers")
+            if old_deleted_count > 0:
+                print(f"Cleaned up {old_deleted_count} signals older than 10 days")
             
             # Add progress tracking for web interface
             print(f"Starting confirmed buy signal generation for {len(tickers)} ASX tickers...")
@@ -478,3 +530,235 @@ def get_signal_statistics(
         "processed_signals": processed_signals,
         "pending_signals": total_signals - processed_signals
     }
+
+@router.post("/historical", response_model=schemas.PaginatedHistoricalSignalsResponse)
+def get_historical_signals(
+    request: schemas.HistoricalSignalRequest,
+    db: Session = Depends(get_db)
+):
+    """Get historical signals with enhanced filtering"""
+    # Start with base query joining ticker table for enhanced filtering
+    query = db.query(models.Signal).join(models.Ticker, models.Signal.ticker_id == models.Ticker.id)
+    
+    # Apply filters
+    if request.market_type:
+        query = query.filter(models.Ticker.market_type == request.market_type)
+    
+    if request.exchange:
+        query = query.filter(func.lower(models.Ticker.exchange) == request.exchange.lower())
+    
+    if request.ticker_symbol:
+        query = query.filter(func.lower(models.Ticker.symbol) == request.ticker_symbol.lower())
+    
+    if request.signal_type:
+        query = query.filter(models.Signal.signal_type == request.signal_type)
+    
+    if request.signal_strength:
+        query = query.filter(models.Signal.signal_strength == request.signal_strength)
+    
+    if request.start_date:
+        query = query.filter(models.Signal.signal_date >= request.start_date)
+    
+    if request.end_date:
+        query = query.filter(models.Signal.signal_date <= request.end_date)
+    
+    if request.is_processed is not None:
+        query = query.filter(models.Signal.is_processed == request.is_processed)
+    
+    # Base asset filtering for future crypto implementation
+    if request.base_asset:
+        # This will be implemented when crypto relative performance is added
+        # For now, we can filter by exchange or add a base_asset field to tickers
+        pass
+    
+    # Order by signal_date (newest first) then generated_at
+    signals = query.order_by(
+        models.Signal.signal_date.desc(),
+        models.Signal.generated_at.desc()
+    ).offset(request.skip).limit(request.limit).all()
+    
+    # Get total count for pagination (without offset/limit)
+    total_query = db.query(models.Signal).join(models.Ticker, models.Signal.ticker_id == models.Ticker.id)
+    
+    # Apply the same filters for total count
+    if request.market_type:
+        total_query = total_query.filter(models.Ticker.market_type == request.market_type)
+    if request.exchange:
+        total_query = total_query.filter(func.lower(models.Ticker.exchange) == request.exchange.lower())
+    if request.ticker_symbol:
+        total_query = total_query.filter(func.lower(models.Ticker.symbol) == request.ticker_symbol.lower())
+    if request.signal_type:
+        total_query = total_query.filter(models.Signal.signal_type == request.signal_type)
+    if request.signal_strength:
+        total_query = total_query.filter(models.Signal.signal_strength == request.signal_strength)
+    if request.start_date:
+        total_query = total_query.filter(models.Signal.signal_date >= request.start_date)
+    if request.end_date:
+        total_query = total_query.filter(models.Signal.signal_date <= request.end_date)
+    if request.is_processed is not None:
+        total_query = total_query.filter(models.Signal.is_processed == request.is_processed)
+    
+    total_count = total_query.count()
+    
+    # Manually load ticker data to avoid complex JOINs
+    ticker_ids = list(set(signal.ticker_id for signal in signals))
+    tickers = db.query(models.Ticker).filter(models.Ticker.id.in_(ticker_ids)).all()
+    ticker_map = {ticker.id: ticker for ticker in tickers}
+    
+    # Attach ticker data to signals
+    for signal in signals:
+        signal.ticker = ticker_map.get(signal.ticker_id)
+    
+    # Calculate pagination info
+    page = (request.skip // request.limit) + 1
+    total_pages = (total_count + request.limit - 1) // request.limit  # Ceiling division
+    
+    return schemas.PaginatedHistoricalSignalsResponse(
+        signals=signals,
+        total=total_count,
+        page=page,
+        per_page=request.limit,
+        total_pages=total_pages
+    )
+
+
+@router.post("/generate-crypto")  
+async def generate_crypto_signals(
+    request: schemas.CryptoSignalGenerationRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Generate signals for cryptocurrency trading pairs
+    
+    Args:
+        market: Market type (should be 'crypto')
+        exchange: Exchange name (should be 'binance')
+        base_asset: Base asset for trading pairs ('ETH' or 'BTC') 
+        signal_type: Type of signals to generate (should be 'confirmed_buy')
+        limit_pairs: Optional limit on number of pairs to process (for testing)
+    
+    Returns:
+        Generated crypto signals
+    """
+    try:
+        # Extract parameters from Pydantic model
+        market = request.market
+        exchange = request.exchange
+        base_asset = request.base_asset
+        signal_type = request.signal_type
+        limit_pairs = request.limit_pairs
+        
+        # Debug: Log received parameters
+        print(f"=== CRYPTO SIGNAL GENERATION DEBUG ===")
+        print(f"Received parameters: market={market}, exchange={exchange}, base_asset={base_asset}, signal_type={signal_type}, limit_pairs={limit_pairs}")
+        logger.info(f"=== CRYPTO SIGNAL GENERATION DEBUG ===")
+        logger.info(f"Received parameters: market={market}, exchange={exchange}, base_asset={base_asset}, signal_type={signal_type}, limit_pairs={limit_pairs}")
+        
+        # Validate parameters
+        if market.lower() != "crypto":
+            raise HTTPException(status_code=400, detail="Market must be 'crypto'")
+        
+        if exchange.lower() != "binance":
+            raise HTTPException(status_code=400, detail="Only 'binance' exchange is supported")
+        
+        if base_asset.upper() not in ["ETH", "BTC"]:
+            raise HTTPException(status_code=400, detail="Only 'ETH' and 'BTC' base assets are supported")
+        
+        if signal_type.lower() != "confirmed_buy":
+            raise HTTPException(status_code=400, detail="Only 'confirmed_buy' signal type is supported currently")
+        
+        logger.info(f"Starting crypto signal generation for {exchange} {base_asset} pairs")
+        
+        # Import crypto signal generator
+        from app.services.crypto_signal_generator import crypto_signal_generator
+        
+        # Generate signals for the specified base asset
+        print(f"[API DEBUG] About to call generate_crypto_pair_signals with base_asset={base_asset.upper()}, limit_pairs={limit_pairs}")
+        logger.info(f"DEBUG: Calling generate_crypto_pair_signals with base_asset={base_asset.upper()}")
+        signals = await crypto_signal_generator.generate_crypto_pair_signals(
+            base_asset=base_asset.upper(),
+            min_volume_usdt=0,  # Allow all volumes (like reference script)
+            days_check=365,  # Allow data from last year (relaxed like reference)
+            focus_confirmed_buy=True,
+            limit_pairs=100  # Limit to top 100 pairs for reasonable performance
+        )
+        print(f"[API DEBUG] generate_crypto_pair_signals returned {len(signals)} signals")
+        
+        logger.info(f"Generated {len(signals)} crypto signals for {base_asset}")
+        if signals:
+            logger.info(f"First signal base_asset: {signals[0].get('base_asset')}")
+        
+        # Transform signals to match the expected format for frontend
+        formatted_signals = []
+        for signal in signals:
+            try:
+                # Parse signal_data if it's a string
+                signal_data = signal.get('signal_data', '{}')
+                if isinstance(signal_data, str):
+                    signal_data = json.loads(signal_data)
+                
+                formatted_signal = {
+                    'id': None,  # Not persisted to database
+                    'ticker_id': None,  # Not using ticker table for crypto
+                    'ticker_symbol': f"{signal['symbol']}/{signal['base_asset']}",
+                    'signal_type': signal['signal_type'],
+                    'signal_strength': signal['signal_strength'], 
+                    'price': signal['price'],
+                    'volume': signal.get('volume', 0),
+                    'confidence_score': signal['confidence_score'],
+                    'signal_data': json.dumps(signal_data),
+                    'signal_date': signal['signal_date'],
+                    'generated_at': signal['generated_at'],
+                    'is_processed': False,
+                    'ticker': {
+                        'id': None,
+                        'symbol': f"{signal['symbol']}/{signal['base_asset']}",
+                        'exchange': 'Binance',
+                        'market_type': 'crypto',
+                        'is_active': True
+                    }
+                }
+                
+                formatted_signals.append(formatted_signal)
+                
+            except Exception as e:
+                logger.error(f"Error formatting signal for {signal.get('symbol', 'unknown')}: {str(e)}")
+                continue
+        
+        return {
+            "success": True,
+            "signals": formatted_signals,
+            "total_pairs_checked": len(signals) if signals else 0,
+            "message": f"Generated {len(formatted_signals)} crypto signals"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in crypto signal generation: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error generating crypto signals: {str(e)}")
+
+
+@router.post("/test-crypto")
+async def test_crypto_workflow():
+    """
+    Test the crypto signal workflow with a limited set of pairs
+    """
+    try:
+        logger.info("Testing crypto signal workflow...")
+        
+        # Import crypto signal generator
+        from app.services.crypto_signal_generator import crypto_signal_generator
+        
+        # Test with a few popular ETH pairs (default)
+        result = await crypto_signal_generator.test_crypto_signal_workflow()
+        
+        return {
+            "success": result['success'],
+            "pairs_tested": result['pairs_tested'],
+            "signals_generated": result['signals_generated'],
+            "errors": result.get('errors', []),
+            "message": "Crypto workflow test completed"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in crypto workflow test: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error testing crypto workflow: {str(e)}")
