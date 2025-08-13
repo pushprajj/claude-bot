@@ -86,7 +86,10 @@ export default function Signals() {
 
   useEffect(() => {
     fetchTickers();
-    // Don't auto-fetch signals on mount for current tab
+    // Auto-fetch current signals when page loads
+    if (activeTab === 'current') {
+      fetchCurrentSignals();
+    }
   }, []);
 
   // Clear current signals only when market or exchange filters actually change (not when switching tabs)
@@ -105,6 +108,13 @@ export default function Signals() {
     
     return () => clearTimeout(timer);
   }, [historicalTicker]);
+  
+  // Fetch current signals when switching to current tab
+  useEffect(() => {
+    if (activeTab === 'current') {
+      fetchCurrentSignals();
+    }
+  }, [activeTab]);
   
   // Fetch historical signals when historical filters change (using debounced ticker)
   useEffect(() => {
@@ -148,8 +158,6 @@ export default function Signals() {
       if (exch) {
         queryParams.exchange = exch;
       }
-      
-      console.log('Fetching current signals with params:', queryParams);
       
       const response = await signalApi.getAll(queryParams);
       
@@ -261,7 +269,7 @@ export default function Signals() {
           exchange: 'binance',
           base_asset: selectedBaseAsset,
           signal_type: 'confirmed_buy',
-          limit_pairs: null // No limit - fetch all qualifying pairs
+          limit_pairs: undefined // No limit - fetch all qualifying pairs
         };
 
         console.log('Generating crypto signals with params:', cryptoParams);
@@ -449,10 +457,10 @@ export default function Signals() {
       // Create the watchlist entry
       const watchlistData = {
         ticker_id: selectedSignalForWatchlist.ticker_id,
-        support_price: watchlistFormData.support_price ? parseFloat(watchlistFormData.support_price) : null,
-        resistance_price: watchlistFormData.resistance_price ? parseFloat(watchlistFormData.resistance_price) : null,
-        target_min: watchlistFormData.target_min ? parseFloat(watchlistFormData.target_min) : null,
-        target_max: watchlistFormData.target_max ? parseFloat(watchlistFormData.target_max) : null,
+        support_price: watchlistFormData.support_price ? parseFloat(watchlistFormData.support_price) : undefined,
+        resistance_price: watchlistFormData.resistance_price ? parseFloat(watchlistFormData.resistance_price) : undefined,
+        target_min: watchlistFormData.target_min ? parseFloat(watchlistFormData.target_min) : undefined,
+        target_max: watchlistFormData.target_max ? parseFloat(watchlistFormData.target_max) : undefined,
         signal_type: selectedSignalForWatchlist.signal_type,
         signal_date: selectedSignalForWatchlist.signal_date || selectedSignalForWatchlist.generated_at.split('T')[0], // Use signal_date or extract date from generated_at
         signal_price: selectedSignalForWatchlist.price,
@@ -473,8 +481,8 @@ export default function Signals() {
       
       // Provide user-friendly error messages
       if (errorMessage.includes('already in watchlist')) {
-        console.warn('Attempted to add duplicate ticker to watchlist:', selectedSignalForWatchlist.ticker.symbol);
-        alert(`${selectedSignalForWatchlist.ticker.symbol} is already in your watchlist. You can update it from the Watchlist page.`);
+        console.warn('Attempted to add duplicate ticker to watchlist:', selectedSignalForWatchlist.ticker?.symbol);
+        alert(`${selectedSignalForWatchlist.ticker?.symbol || 'This ticker'} is already in your watchlist. You can update it from the Watchlist page.`);
       } else if (errorMessage.includes('Ticker not found')) {
         console.warn('Ticker not found when adding to watchlist');
         alert('The selected ticker was not found. Please try again.');
@@ -642,14 +650,22 @@ export default function Signals() {
                 </div>
                 
                 {/* Generate Button */}
-                <div className="flex items-end">
+                <div className="flex items-end gap-2">
                   <button
                     onClick={generateConfirmedBuySignals}
                     disabled={generating || (!selectedMarket || !selectedExchange)}
-                    className="w-full bg-green-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-green-700 disabled:opacity-50"
+                    className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-green-700 disabled:opacity-50"
                   >
                     <TrendingUp className={`w-4 h-4 ${generating ? 'animate-spin' : ''}`} />
                     {generating ? 'Generating...' : 'Generate'}
+                  </button>
+                  <button
+                    onClick={() => fetchCurrentSignals()}
+                    disabled={currentLoading}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50"
+                    title="Refresh current signals"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${currentLoading ? 'animate-spin' : ''}`} />
                   </button>
                 </div>
               </div>

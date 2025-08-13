@@ -1,0 +1,383 @@
+AAVE,crypto,Binance,Aave
+ADA,crypto,Binance,Cardano
+APT,crypto,Binance,Aptos
+AR,crypto,Binance,Arweave
+ARB,crypto,Binance,Arbitrum
+ATOM,crypto,Binance,Cosmos
+AVAX,crypto,Binance,Avalanche
+BEAMX,crypto,Binance,Beam
+BNB,crypto,Binance,BNB
+BTC,crypto,Binance,Bitcoin
+CRV,crypto,Binance,Curve DAO Token
+DOGE,crypto,Binance,Doge
+DOT,crypto,Binance,Polkadot
+DYDX,crypto,Binance,dYdX
+EIGEN,crypto,Binance,EigenLayer
+ENA,crypto,Binance,Ethena
+ETH,crypto,Binance,Ethereum
+FET,crypto,Binance,Fetch.ai
+FLOKI,crypto,Binance,FLOKI
+GALA,crypto,Binance,Gala
+HBAR,crypto,Binance,Hedera
+HIFI,crypto,Binance,Hifi Finance
+ICP,crypto,Binance,Internet Computer
+IMX,crypto,Binance,Immutable X
+KNC,crypto,Binance,Kyber Network Crystal
+LDO,crypto,Binance,Lido DAO
+LINK,crypto,Binance,Chainlink
+LTC,crypto,Binance,Litecoin
+NEAR,crypto,Binance,NEAR Protocol
+OM,crypto,Binance,Mantra
+ONDO,crypto,Binance,Ondo
+OP,crypto,Binance,Optimism
+PAXG,crypto,Binance,PAX Gold
+PRCL,crypto,Binance,Parcl
+RENDER,crypto,Binance,Render
+SEI,crypto,Binance,Sei
+SOL,crypto,Binance,Solana
+STRK,crypto,Binance,Starknet
+SUI,crypto,Binance,Sui
+SUPER,crypto,Binance,SuperVerse
+TAO,crypto,Binance,Bittensor
+VIRTUAL,crypto,Binance,Virtual Protocol
+WIF,crypto,Binance,Dogwifhat
+WLD,crypto,Binance,Worldcoin
+XRP,crypto,Binance,XRP
+ZK,crypto,Binance,zkSync
+ZRO,crypto,Binance,LayerZero
+ADA,crypto,Bybit,Cardano
+BTC,crypto,Bybit,Bitcoin
+DOGE,crypto,Bybit,Dogecoin
+ETH,crypto,Bybit,Ethereum
+SOL,crypto,Bybit,Solana
+BERA,crypto,Kraken,Berachain
+KDA,crypto,KuCoin,Kadena
+GUN,crypto,Unclear,Gun (Uncertain)
+IP,crypto,Unclear,IP (Uncertain)
+MOVE,crypto,Unclear,Move (Uncertain)
+S,crypto,Unclear,S (Uncertain)
+4DS,stock,ASX,4DS Memory Limited
+A2M,stock,ASX,The a2 Milk Company Limited
+ACF,stock,ASX,Acrow Limited
+AEF,stock,ASX,Australian Ethical Investment Limited
+AGL,stock,ASX,AGL Energy Limited
+ALFA,stock,ASX,BetaShares Australian Financials Sector ETF
+ALL,stock,ASX,Aristocrat Leisure Limited
+ANZ,stock,ASX,ANZ Group Holdings Limited
+AOV,stock,ASX,Amotiv Limited
+APX,stock,ASX,Appen Limited
+ARB,stock,ASX,ARB Corporation Limited
+ASX,stock,ASX,ASX Limited
+AX1,stock,ASX,Accent Group Limited
+BBN,stock,ASX,Baby Bunting Group Limited
+BHP,stock,ASX,BHP Group Limited
+BLX,stock,ASX,Beacon Lighting Group Limited
+BRG,stock,ASX,Breville Group Limited
+BXB,stock,ASX,Brambles Limited
+CAR,stock,ASX,Car Group Limited
+CAT,stock,ASX,Catapult Group International Limited
+CBA,stock,ASX,Commonwealth Bank of Australia
+CCP,stock,ASX,Credit Corp Group Limited
+CDA,stock,ASX,Codan Limited
+CKF,stock,ASX,Collins Foods Limited
+COH,stock,ASX,Cochlear Limited
+COL,stock,ASX,Coles Group Limited
+CPU,stock,ASX,Computershare Limited
+CRYP,stock,ASX,BetaShares Crypto Innovators ETF
+CSL,stock,ASX,CSL Limited
+CUV,stock,ASX,Clinuvel Pharmaceuticals Limited
+DMP,stock,ASX,Domino's Pizza Enterprises Limited
+DRO,stock,ASX,DroneShield Limited
+DTL,stock,ASX,Data#3 Limited
+DUG,stock,ASX,DUG Technology Ltd
+ELD,stock,ASX,Elders Limited
+ETPMAG,stock,ASX,ETFS Physical Silver
+ETPMPD,stock,ASX,ETFS Physical Palladium
+ETPMPT,stock,ASX,ETFS Physical Platinum
+EVN,stock,ASX,Evolution Mining Limited
+FBR,stock,ASX,FBR Limited
+FID,stock,ASX,Fiducian Group Limited
+FMG,stock,ASX,Fortescue Ltd
+GEAR,stock,ASX,BetaShares Geared Australian Equity Fund
+GGAB,stock,ASX,BetaShares Global Agriculture Companies ETF
+GGOV,stock,ASX,BetaShares Global Government Bond ETF
+GGUS,stock,ASX,BetaShares Geared US Equity Fund
+GOR,stock,ASX,Gold Road Resources Limited
+GRR,stock,ASX,Grange Resources Limited
+GSBK51,stock,ASX,State Street SPDR S&P Global Dividend Fund
+GSBK54,stock,ASX,State Street SPDR S&P/ASX 200 Fund
+GWA,stock,ASX,GWA Group Limited
+GYG,stock,ASX,Guzman y Gomez Limited
+IAG,stock,ASX,Insurance Australia Group Limited
+IEL,stock,ASX,IDP Education Limited
+ILU,stock,ASX,Iluka Resources Limited
+IOZ,stock,ASX,iShares Core S&P/ASX 200 ETF
+IPH,stock,ASX,IPH Limited
+JBH,stock,ASX,JB Hi-Fi Limited
+JIN,stock,ASX,Jumbo Interactive Limited
+JLG,stock,ASX,Johns Lyng Group Limited
+LAU,stock,ASX,Lindsay Australia Limited
+LDX,stock,ASX,LuminaryLabs Limited
+LIF,stock,ASX,Life360 Inc
+LOV,stock,ASX,Lovisa Holdings Limited
+LYL,stock,ASX,Lycopodium Limited
+MAD,stock,ASX,Mader Group Limited
+MAH,stock,ASX,Macmahon Holdings Limited
+MFG,stock,ASX,Magellan Financial Group Limited
+MND,stock,ASX,Monadelphous Group Limited
+MNRS,stock,ASX,BetaShares Global Gold Miners ETF
+MOAT,stock,ASX,VanEck Vectors Morningstar Wide Moat ETF
+MPL,stock,ASX,Medibank Private Limited
+MTS,stock,ASX,Metcash Limited
+MVF,stock,ASX,Monash IVF Group Limited
+NAB,stock,ASX,National Australia Bank Limited
+NCK,stock,ASX,Nick Scali Limited
+NDQ,stock,ASX,BetaShares NASDAQ 100 ETF
+NEC,stock,ASX,Nine Entertainment Co. Holdings Limited
+NHF,stock,ASX,NIB Holdings Limited
+NWH,stock,ASX,NRW Holdings Limited
+NWL,stock,ASX,Netwealth Group Limited
+NXL,stock,ASX,Nuix Limited
+NXT,stock,ASX,NEXTDC Limited
+OCL,stock,ASX,Objective Corporation Limited
+ORG,stock,ASX,Origin Energy Limited
+PLS,stock,ASX,Pilbara Minerals Limited
+PLY,stock,ASX,PlaySide Studios Limited
+PME,stock,ASX,Pro Medicus Limited
+PMV,stock,ASX,Premier Investments Limited
+PNI,stock,ASX,Pinnacle Investment Management Group Limited
+PPT,stock,ASX,Perpetual Limited
+PTM,stock,ASX,Platinum Asset Management Limited
+PWH,stock,ASX,PWR Holdings Limited
+PXA,stock,ASX,PEXA Group Limited
+QAU,stock,ASX,BetaShares Gold Bullion ETF
+REA,stock,ASX,REA Group Limited
+REH,stock,ASX,Reece Limited
+RFF,stock,ASX,Rural Funds Group
+RIC,stock,ASX,Ridley Corporation Limited
+RIO,stock,ASX,Rio Tinto Limited
+RMS,stock,ASX,Ramelius Resources Limited
+RWC,stock,ASX,Reliance Worldwide Corporation Limited
+SDF,stock,ASX,Steadfast Group Limited
+SFC,stock,ASX,Schaffer Corporation Limited
+SGLLV,stock,ASX,iShares Core MSCI World All Cap ETF
+SIQ,stock,ASX,Smartgroup Corporation Ltd
+SNL,stock,ASX,Supply Network Limited
+SRV,stock,ASX,Servcorp Limited
+STO,stock,ASX,Santos Limited
+SUL,stock,ASX,Super Retail Group Limited
+SXE,stock,ASX,Southern Cross Electrical Engineering Ltd
+TNE,stock,ASX,Technology One Limited
+URNM,stock,ASX,BetaShares Global Uranium ETF
+VSO,stock,ASX,Vanguard MSCI Australian Small Companies Index ETF
+WAM,stock,ASX,Wilson Asset Management Limited
+WBC,stock,ASX,Westpac Banking Corporation
+WES,stock,ASX,Wesfarmers Limited
+WIRE,stock,ASX,Global X Copper Miners ETF
+WMI,stock,ASX,WAM Microcap Limited
+WOW,stock,ASX,Woolworths Group Limited
+WTC,stock,ASX,WiseTech Global Limited
+XGOV,stock,ASX,Global X Australian Government Bond ETF
+XRO,stock,ASX,Xero Limited
+AAPL,stock,NASDAQ,Apple Inc.
+ABNB,stock,NASDAQ,Airbnb
+AFRM,stock,NASDAQ,Affirm Holdings
+ALAB,stock,NASDAQ,Astera Labs
+ALNY,stock,NASDAQ,Alnylam Pharmaceuticals
+AMAT,stock,NASDAQ,Applied Materials
+AMD,stock,NASDAQ,Advanced Micro Devices
+AMZN,stock,NASDAQ,Amazon.com
+ANSS,stock,NASDAQ,ANSYS
+APPF,stock,NASDAQ,AppFolio
+APPN,stock,NASDAQ,Appian Corporation
+ASML,stock,NASDAQ,ASML Holding N.V.
+AVGO,stock,NASDAQ,Broadcom Inc.
+BIDU,stock,NASDAQ,Baidu
+BIIB,stock,NASDAQ,Biogen Inc.
+BILL,stock,NASDAQ,BILL Holdings
+BKNG,stock,NASDAQ,Booking Holdings Inc.
+BYDDY,stock,NASDAQ,BYD Company Limited
+CDNS,stock,NASDAQ,Cadence Design Systems
+CHKP,stock,NASDAQ,Check Point Software Technologies Ltd.
+COIN,stock,NASDAQ,Coinbase Global
+CRSP,stock,NASDAQ,CRISPR Therapeutics AG
+CRWD,stock,NASDAQ,CrowdStrike Holdings
+CYBR,stock,NASDAQ,CyberArk Software Ltd.
+DASH,stock,NASDAQ,DoorDash
+DBX,stock,NASDAQ,Dropbox
+DDOG,stock,NASDAQ,Datadog
+DOCU,stock,NASDAQ,DocuSign
+EBAY,stock,NASDAQ,eBay Inc.
+ENPH,stock,NASDAQ,Enphase Energy
+ESTC,stock,NASDAQ,Elastic N.V.
+ETSY,stock,NASDAQ,Etsy
+EXPE,stock,NASDAQ,Expedia Group
+FUTU,stock,NASDAQ,Futu Holdings Limited
+GILD,stock,NASDAQ,Gilead Sciences
+GOOGL,stock,NASDAQ,Alphabet Inc.
+HOOD,stock,NASDAQ,Robinhood Markets
+ILMN,stock,NASDAQ,Illumina
+INMD,stock,NASDAQ,InMode Ltd.
+INTC,stock,NASDAQ,Intel Corporation
+IONS,stock,NASDAQ,Ionis Pharmaceuticals
+JD,stock,NASDAQ,JD.com
+KLAC,stock,NASDAQ,KLA Corporation
+LCID,stock,NASDAQ,Lucid Group
+LIF,stock,NASDAQ,Life360
+LRCX,stock,NASDAQ,Lam Research Corporation
+LYFT,stock,NASDAQ,Lyft
+MDB,stock,NASDAQ,MongoDB
+MELI,stock,NASDAQ,MercadoLibre
+META,stock,NASDAQ,Meta Platforms
+MNST,stock,NASDAQ,Monster Beverage Corporation
+MRNA,stock,NASDAQ,Moderna
+MRVL,stock,NASDAQ,Marvell Technology
+MSFT,stock,NASDAQ,Microsoft Corporation
+MSTR,stock,NASDAQ,MicroStrategy Incorporated
+MTCH,stock,NASDAQ,Match Group
+MU,stock,NASDAQ,Micron Technology
+NBIX,stock,NASDAQ,Neurocrine Biosciences
+NEWSTOCK,stock,NASDAQ,New Stock Company
+NTES,stock,NASDAQ,NetEase
+NTLA,stock,NASDAQ,Intellia Therapeutics
+NTNX,stock,NASDAQ,Nutanix
+NVDA,stock,NASDAQ,NVIDIA Corporation
+NVMI,stock,NASDAQ,Nova Ltd.
+NXPI,stock,NASDAQ,NXP Semiconductors N.V.
+OKTA,stock,NASDAQ,Okta
+PANW,stock,NASDAQ,Palo Alto Networks
+PCAR,stock,NASDAQ,PACCAR Inc.
+PLTR,stock,NASDAQ,Palantir Technologies Inc.
+PTON,stock,NASDAQ,Peloton Interactive
+PYPL,stock,NASDAQ,PayPal Holdings
+REGN,stock,NASDAQ,Regeneron Pharmaceuticals
+RIVN,stock,NASDAQ,Rivian Automotive
+RKLB,stock,NASDAQ,Rocket Lab USA
+ROKU,stock,NASDAQ,Roku
+SEDG,stock,NASDAQ,SolarEdge Technologies
+SHAK,stock,NASDAQ,Shake Shack Inc.
+SIRI,stock,NASDAQ,Sirius XM Holdings Inc.
+SNOW,stock,NASDAQ,Snowflake Inc.
+SPOT,stock,NASDAQ,Spotify Technology S.A.
+TEAM,stock,NASDAQ,Atlassian Corporation
+TLT,stock,NASDAQ,iShares 20+ Year Treasury Bond ETF
+TSLA,stock,NASDAQ,Tesla Inc.
+TTD,stock,NASDAQ,The Trade Desk
+TTGT,stock,NASDAQ,TechTarget
+TTWO,stock,NASDAQ,Take-Two Interactive Software
+TWLO,stock,NASDAQ,Twilio Inc.
+TXG,stock,NASDAQ,10x Genomics
+U,stock,NASDAQ,Unity Software Inc.
+VERI,stock,NASDAQ,Veritone
+VRSK,stock,NASDAQ,Verisk Analytics
+VRTX,stock,NASDAQ,Vertex Pharmaceuticals Incorporated
+W,stock,NASDAQ,Wayfair Inc.
+WDC,stock,NASDAQ,Western Digital Corporation
+WW,stock,NASDAQ,WW International
+XMTR,stock,NASDAQ,Xometry
+ZI,stock,NASDAQ,ZoomInfo Technologies Inc.
+ZM,stock,NASDAQ,Zoom Video Communications
+ZS,stock,NASDAQ,Zscaler
+ABBV,stock,NYSE,AbbVie Inc.
+ADDYY,stock,NYSE,Adidas AG
+AMRZ,stock,NYSE,Amrize AG
+APD,stock,NYSE,Air Products and Chemicals
+AVAV,stock,NYSE,AeroVironment
+AXP,stock,NYSE,American Express Company
+BA,stock,NYSE,The Boeing Company
+BABA,stock,NYSE,Alibaba Group Holding Limited
+BAC,stock,NYSE,Bank of America Corporation
+BBY,stock,NYSE,Best Buy Co.
+BKR,stock,NYSE,Baker Hughes Company
+BMY,stock,NYSE,Bristol-Myers Squibb Company
+BYDDY,stock,NYSE,BYD Company Limited
+C,stock,NYSE,Citigroup Inc.
+CAT,stock,NYSE,Caterpillar Inc.
+CE,stock,NYSE,Celanese Corporation
+CI,stock,NYSE,The Cigna Group
+CL,stock,NYSE,Colgate-Palmolive Company
+CMCSA,stock,NYSE,Comcast Corporation
+CMG,stock,NYSE,Chipotle Mexican Grill
+COST,stock,NYSE,Costco Wholesale Corporation
+CSX,stock,NYSE,CSX Corporation
+DD,stock,NYSE,DuPont de Nemours
+DE,stock,NYSE,Deere & Company
+DG,stock,NYSE,Dollar General Corporation
+DIS,stock,NYSE,The Walt Disney Company
+DLTR,stock,NYSE,Dollar Tree
+DPZ,stock,NYSE,Domino's Pizza
+DRI,stock,NYSE,Darden Restaurants
+ECL,stock,NYSE,Ecolab Inc.
+ELV,stock,NYSE,Elevance Health
+F,stock,NYSE,Ford Motor Company
+GD,stock,NYSE,General Dynamics Corporation
+GDX,stock,NYSE,VanEck Gold Miners ETF
+GE,stock,NYSE,General Electric Company
+GIS,stock,NYSE,General Mills
+GM,stock,NYSE,General Motors Company
+GNRC,stock,NYSE,Generac Holdings Inc.
+GS,stock,NYSE,The Goldman Sachs Group
+HAL,stock,NYSE,Halliburutz
+HD,stock,NYSE,The Home Depot
+HIPO,stock,NYSE,Hippo Holdings Inc.
+HON,stock,NYSE,Honeywell International Inc.
+HSY,stock,NYSE,The Hershey Company
+JNJ,stock,NYSE,Johnson & Johnson
+JPM,stock,NYSE,JPMorgan Chase & Co.
+JWN,stock,NYSE,Nordstrom
+K,stock,NYSE,Kellanova
+KHC,stock,NYSE,The Kraft Heinz Company
+KO,stock,NYSE,The Coca-Cola Company
+KTOS,stock,NYSE,Kratos Defense & Security Solutions
+LB,stock,NYSE,Unclear (Possible typo or delisted)
+LIN,stock,NYSE,Linde plc
+LIT,stock,NYSE,Global X Lithium & Battery Tech ETF
+LLY,stock,NYSE,Eli Lilly and Company
+LMT,stock,NYSE,Lockheed Martin Corporation
+LOW,stock,NYSE,Lowe's Companies
+LULU,stock,NYSE,Lululemon Athletica Inc.
+M,stock,NYSE,Macy's
+MA,stock,NYSE,Mastercard Incorporated
+MCD,stock,NYSE,McDonald's Corporation
+MDLZ,stock,NYSE,Mondelez International
+MPC,stock,NYSE,Marathon Petroleum Corporation
+MRK,stock,NYSE,Merck & Co.
+MS,stock,NYSE,Morgan Stanley
+NFLX,stock,NYSE,Netflix
+NKE,stock,NYSE,NIKE
+NOC,stock,NYSE,Northrop Grumman Corporation
+NSC,stock,NYSE,Norfolk Southern Corporation
+NSRGY,stock,NYSE,Nestlé S.A.
+ORCL,stock,NYSE,Oracle Corporation
+PALL,stock,NYSE,Aberdeen Standard Physical Palladium Shares ETF
+PEP,stock,NYSE,PepsiCo
+PFE,stock,NYSE,Pfizer Inc.
+PG,stock,NYSE,The Procter & Gamble Company
+PUMSY,stock,NYSE,PUMA SE
+PVH,stock,NYSE,PVH Corp.
+RBLX,stock,NYSE,Roblox Corporation
+RCL,stock,NYSE,Royal Caribbean Cruises Ltd.
+RL,stock,NYSE,Ralph Lauren Corporation
+RTX,stock,NYSE,RTX Corporation
+SBUX,stock,NYSE,Starbucks Corporation
+SCHW,stock,NYSE,The Charles Schwab Corporation
+SHW,stock,NYSE,The Sherwin-Williams Company
+SLB,stock,NYSE,Schlumberger Limited
+T,stock,NYSE,AT&T Inc.
+TDG,stock,NYSE,TransDigm Group Incorporated
+TGT,stock,NYSE,Target Corporation
+TJX,stock,NYSE,The TJX Companies
+TPR,stock,NYSE,Tapestry
+TSM,stock,NYSE,Taiwan Semiconductor Manufacturing Company Limited
+TWLO,stock,NYSE,Twilio Inc.
+U,stock,NYSE,Unity Software Inc.
+UA,stock,NYSE,Under Armour
+UBER,stock,NYSE,Uber Technologies
+UL,stock,NYSE,Unilever PLC
+UNH,stock,NYSE,UnitedHealth Group Incorporated
+UNP,stock,NYSE,Union Pacific Corporation
+V,stock,NYSE,Visa Inc.
+VZ,stock,NYSE,Verizon Communications Inc.
+WFC,stock,NYSE,Wells Fargo & Company
+WMT,stock,NYSE,Walmart Inc.
+YUM,stock,NYSE,Yum! Brands
